@@ -1,0 +1,7 @@
+README.md
+pyproject.toml
+gan_project.egg-info/PKG-INFO
+gan_project.egg-info/SOURCES.txt
+gan_project.egg-info/dependency_links.txt
+gan_project.egg-info/requires.txt
+gan_project.egg-info/top_level.txt
