@@ -150,19 +150,21 @@ class ConditionalUnet(nn.Module):
         temb2 = self.timeembed2(t).view(-1, self.n_feat, 1, 1) # 128
 
         # ==================================================== #
-        # YOUR CODE HERE:
-        #   Define the process of computing the output of a 
-        #   this network given the input x, t, and c.
-        #   The input x, t, c indicate the input image, time step
-        #   and the condition respectively.
-        # A potential format is shown below, feel free to use your own ways to design it.
-        # down0 = 
-        # down1 =
-        # down2 = 
-        # up0 = 
-        # up1 = 
-        # up2 = 
-        # out = self.outblock(torch.cat((up2, down0), dim = 1))
+        down0 = self.init_conv(x)                                        # (B, n_feat, 28, 28)
+        down0 = self.fusion1(down0, temb2, cemb2)                        # inject t+c early
+        down1 = self.downblock1(down0)                                   # (B, n_feat, 14, 14)
+        down2 = self.downblock2(down1)                                   # (B, 2*n_feat, 7, 7)
+
+        hid = self.to_vec(down2)                                         # (B, 2*n_feat, 1, 1)
+        hid = self.fusion2(hid, temb1, cemb1)                            # inject t+c at bottleneck
+
+        up0 = self.upblock0(hid)                                         # (B, 2*n_feat, 7, 7)
+        up1 = self.upblock1(up0, down2)                                  # (B, n_feat, 14, 14)
+        up1 = self.fusion3(up1, temb2, cemb2)                            # inject t+c in decoder
+        up2 = self.upblock2(up1, down1)                                  # (B, n_feat, 28, 28)
+        up2 = self.fusion4(up2, temb2, cemb2)                            # inject t+c before output
+
+        out = self.outblock(torch.cat((up2, down0), dim=1))
         # ==================================================== #
 
         return out
